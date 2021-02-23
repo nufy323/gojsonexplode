@@ -8,6 +8,12 @@ import (
 	"strconv"
 )
 
+var explodeNestedArray = false
+
+func ExplodeNestedList(enable bool) {
+	explodeNestedArray = enable
+}
+
 func explodeList(l []interface{}, parent string, delimiter string) (map[string]interface{}, error) {
 	var err error
 	var key string
@@ -34,13 +40,17 @@ func explodeList(l []interface{}, parent string, delimiter string) (map[string]i
 		case bool:
 			j[key] = v
 		case []interface{}:
-			out := make(map[string]interface{})
-			out, err = explodeList(v, key, delimiter)
-			if err != nil {
-				return nil, err
-			}
-			for newkey, value := range out {
-				j[newkey] = value
+			if explodeNestedArray {
+				out := make(map[string]interface{})
+				out, err = explodeList(v, key, delimiter)
+				if err != nil {
+					return nil, err
+				}
+				for newkey, value := range out {
+					j[newkey] = value
+				}
+			} else {
+				j[key] = v
 			}
 		case map[string]interface{}:
 			out := make(map[string]interface{})
@@ -77,13 +87,17 @@ func explodeMap(m map[string]interface{}, parent string, delimiter string) (map[
 		case bool:
 			j[k] = v
 		case []interface{}:
-			out := make(map[string]interface{})
-			out, err = explodeList(v, k, delimiter)
-			if err != nil {
-				return nil, err
-			}
-			for key, value := range out {
-				j[key] = value
+			if explodeNestedArray {
+				out := make(map[string]interface{})
+				out, err = explodeList(v, k, delimiter)
+				if err != nil {
+					return nil, err
+				}
+				for key, value := range out {
+					j[key] = value
+				}
+			} else {
+				j[k] = v
 			}
 		case map[string]interface{}:
 			out := make(map[string]interface{})
